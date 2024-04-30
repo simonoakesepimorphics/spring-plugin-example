@@ -3,7 +3,7 @@
 This document explores the use cases and methodology for implementing,
 packaging and integrating Spring Boot applications which are extensible by external plugins.
 This document refers to application and library code written in Kotlin and managed by Maven,
-but should be applicable to any other equivalent technologies.
+but should be applicable to any other equivalent Spring-compatible technologies.
 
 When developing a Spring Boot application,
 we may want to import dependencies into the project which serve a specific set of features or integrations with other services,
@@ -48,6 +48,7 @@ Effectively, anything that can be added to the Spring application context can be
 
 In order to illustrate the plugin approach, we will refer to an example project: [Spring Plugin Example](https://github.com/simonoakesepimorphics/spring-plugin-example),
 which you can download, run and modify yourself.
+Wherever we reference specific classes, you can follow the links to their source code on GitHub.
 This example has the following characteristics:
 
 * The core "greeting" application has one endpoint, `/greeting`, accepting a required `name` parameter, and an optional `language` parameter.
@@ -87,7 +88,8 @@ java -cp \
 Then, navigate to http://localhost:8080/greeting?name=Alice&language=fr to see a greeting in French.
 The plugin supports `en`, `fr`, `de` and `es` language codes (see the [JSON file](https://github.com/simonoakesepimorphics/spring-plugin-example/blob/main/greeting-language-plugin/src/main/resources/greeting.json) for details).
 
-In order to explain the development of this functionality, we must first describe the Maven project structure.
+The next describes the Maven project structure we use to create the JAR artifacts.
+To skip directly to the details of the implementation, see the [Injecting Plugin Beans](#injecting-plugin-beans) section.
 
 ## Project Structure
 
@@ -302,9 +304,9 @@ java \
 
 With variables being defined as follows:
 
-* `$CORE_APPLICATION_JAR` - The location of the executable application JAR.
-* `$PLUGIN_JAR_WITH_DEPS` - The location of the plugin library JAR with dependencies.
-* `$EXTERNAL_PLUGIN_CONFIG` - The location of the external context configuraton file or resource.
+* `CORE_APPLICATION_JAR` - The location of the executable application JAR.
+* `PLUGIN_JAR_WITH_DEPS` - The location of the plugin library JAR with dependencies.
+* `EXTERNAL_PLUGIN_CONFIG` - The location of the external context configuraton file or resource.
 
 Additional plugins can be added in the same way by listing their JAR files as a comma-delimited list in the `-Dloader.path` argument value.
 When you add a plugin, you must remember to add its configuration classes to your context configuration file.
