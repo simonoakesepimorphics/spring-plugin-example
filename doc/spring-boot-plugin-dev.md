@@ -55,8 +55,8 @@ This example has the following characteristics:
 * The core implementation returns a default greeting addressed to the specified name.
 * A "language plugin" interface defines a method for selecting the greeting format for the specified language.
 * If a language plugin implementation is present in the application context and the language is specified, the greeting controller uses a greeting format obtained from the language plugin instead of the default format.
-* The language plugin contains an implementation which reads the greeting format for each language from an embedded JSON resource.
-* The language plugin introduces a dependency on the [Jackson](https://github.com/FasterXML/jackson) library for JSON deserialization.
+* The language plugin library contains an implementation which reads the greeting format for each language from an embedded JSON resource.
+* The language plugin library introduces a dependency on the [Jackson](https://github.com/FasterXML/jackson) library for JSON deserialization.
 
 We define the plugin behaviour as a Kotlin interface in the core application ([LanguagePlugin](https://github.com/simonoakesepimorphics/spring-plugin-example/blob/main/greeting-core/src/main/kotlin/com/epimorphics/greeting/LanguagePlugin.kt)),
 and the plugin library provides an implementation of that interface ([JsonLanguagePlugin](https://github.com/simonoakesepimorphics/spring-plugin-example/blob/main/greeting-language-plugin/src/main/kotlin/com/epimorphics/greeting/JsonLanguagePlugin.kt)).
@@ -88,7 +88,7 @@ java -cp \
 Then, navigate to http://localhost:8080/greeting?name=Alice&language=fr to see a greeting in French.
 The plugin supports `en`, `fr`, `de` and `es` language codes (see the [JSON file](https://github.com/simonoakesepimorphics/spring-plugin-example/blob/main/greeting-language-plugin/src/main/resources/greeting.json) for details).
 
-The next describes the Maven project structure we use to create the JAR artifacts.
+The next section describes the Maven project structure we use to create the JAR artifacts.
 To skip directly to the details of the implementation, see the [Injecting Plugin Beans](#injecting-plugin-beans) section.
 
 ## Project Structure
@@ -156,12 +156,12 @@ With the configuration above, the packaging process produces the following JARs:
 ### Packaging an Application Plugin
 
 Each plugin project has its own packaging process.
-Since each plugin is effectively a Java (Kotlin) library,
+Since each plugin is effectively a Kotlin library,
 we use the Kotlin Maven build plugin to package it as a non-executable library JAR, which can be used as a dependency in other projects.
 
 However, this JAR contains only the plugin project code, **without** any of its dependencies.
-The dependencies will be necessary when running the plugin code alongside the core application.
-We use the Maven Assembly build plugin in the POM `build` tag to package both the plugin code and its dependencies in a single JAR as follows:
+The dependencies will be necessary when running the plugin code alongside the core application,
+so we must use the Maven Assembly build plugin in the POM `build` tag to package both the plugin code and its dependencies in a single JAR as follows:
 
 ```
 <plugin>
@@ -196,11 +196,10 @@ With the project structure and packaging in place, we can look more deeply into 
 
 This section describes the mechanism for injecting plugin beans into core application code.
 This is only relevant to plugins which implement some Kotlin interface defined by the core application (as described in the [overview section](#overview)).
-
 Spring enables us to inject each plugin and invoke its interface conditionally, depending on whether
 an implementation of that interface is present (i.e. a Bean) in the Spring application context.
 
-Spring automatically injects Beans, including those supplied by the plugin configuration, into the parameters of configuration methods and component constructors.
+Spring automatically injects Beans, including those supplied by the plugin configuration, into the parameters of `@Bean` annotated methods and component constructors.
 By default, if an expected bean is not present, Spring raises an error and the application does not start.
 This may be desirable in some cases where a plugin implements essential functionality such as a database integration.
 
